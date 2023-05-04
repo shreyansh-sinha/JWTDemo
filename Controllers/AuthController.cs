@@ -1,5 +1,8 @@
 ﻿using JWTDemo.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 
 namespace JWTDemo.Controllers
@@ -8,6 +11,11 @@ namespace JWTDemo.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+        private readonly IConfiguration _configuration;
+        public AuthController(IConfiguration config)
+        {
+            _configuration = config;
+        }
         public static User user = new User();
         [HttpPost("Register")]
         public async Task<IActionResult> Register(UserDTO request)
@@ -40,7 +48,23 @@ namespace JWTDemo.Controllers
 
         private string CreateToken(User user)
         {
-            return string.Empty;
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName)
+            };
+
+            var secretKey = _configuration.GetRequiredSection("SecretKey").Value;
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(secretKey));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddSeconds(180),
+                signingCredentials: creds);
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+            return jwt;
         }
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
