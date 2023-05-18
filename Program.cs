@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,8 +8,11 @@ var config = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirector
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-var signingKey = System.Text.Encoding.UTF8.GetBytes(config.GetRequiredSection("SecretKey").Value);
+
 builder.Services.AddControllers();
+
+var signingKey = System.Text.Encoding.UTF8.GetBytes(config.GetRequiredSection("SecretKey").Value);
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
